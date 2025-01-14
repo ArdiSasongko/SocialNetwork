@@ -14,6 +14,9 @@ type Handler struct {
 		Get(w http.ResponseWriter, r *http.Request)
 	}
 	Users interface {
+		GetProfile(w http.ResponseWriter, r *http.Request)
+	}
+	Auth interface {
 		RegisterUser(w http.ResponseWriter, r *http.Request)
 		LoginUser(w http.ResponseWriter, r *http.Request)
 	}
@@ -29,6 +32,11 @@ func NewHandler(db *sql.DB, auth auth.Authenticator) Handler {
 			error: error,
 		},
 		Users: &UserHandler{
+			service: service,
+			json:    json,
+			error:   error,
+		},
+		Auth: &AuthHandler{
 			service: service,
 			json:    json,
 			error:   error,

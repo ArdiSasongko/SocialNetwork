@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/handlers"
+	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/middlewares"
 	"github.com/ArdiSasongko/SocialNetwork/internal/auth"
 	"github.com/ArdiSasongko/SocialNetwork/internal/db"
 	"github.com/ArdiSasongko/SocialNetwork/internal/env"
@@ -51,10 +52,12 @@ func main() {
 	)
 
 	handler := handlers.NewHandler(conn, auth)
+	middleware := middlewares.NewMiddleware(conn, auth)
 
 	app := application{
-		config:  cfg,
-		handler: handler,
+		config:     cfg,
+		handler:    handler,
+		middleware: middleware,
 	}
 
 	mux := app.mount()

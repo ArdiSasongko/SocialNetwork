@@ -11,6 +11,9 @@ import (
 
 type Service struct {
 	Users interface {
+		GetProfileByID(context.Context, int64) (*models.UserResponse, error)
+	}
+	Auth interface {
 		RegisterUser(context.Context, *models.UserPayload) error
 		LoginUser(context.Context, *models.LoginPayload) (string, error)
 	}
@@ -20,6 +23,10 @@ func NewService(db *sql.DB, auth auth.Authenticator) Service {
 	storage := postgresql.NewStorage(db)
 	return Service{
 		Users: &UserService{
+			storage: &storage,
+			auth:    auth,
+		},
+		Auth: &AuthService{
 			storage: &storage,
 			auth:    auth,
 		},

@@ -27,3 +27,17 @@ type LoginPayload struct {
 func (u *LoginPayload) Validate() error {
 	return Validate.Struct(u)
 }
+
+type UserResponse struct {
+	ID           int64             `json:"id"`
+	Username     string            `json:"username"`
+	Fullname     string            `json:"fullname"`
+	Email        string            `json:"email"`
+	ImageProfile ImageUserResponse `json:"image_profile"`
+	CreatedAt    string            `json:"created_at"`
+	UpdatedAt    string            `json:"updated_at"`
+}
+
+type ImageUserResponse struct {
+	ImageURL string `json:"image_url"`
+}
