@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+
+  db:
+    image: postgres:17-alpine
+    container_name: postgres-socialnetwork
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: socialnetwork
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+volumes:
+  postgres_data:
