@@ -30,3 +30,8 @@ func (e *ErrorUtils) NotFoundError(w http.ResponseWriter, r *http.Request, err e
 	log.Printf("not found error, method: %v, path :%v, message: %v", r.Method, r.URL.Path, err.Error())
 	e.json.WriteJSONError(w, http.StatusNotFound, err.Error())
 }
+
+func (e *ErrorUtils) UnauthorizedError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("unauthorized error, method: %v, path :%v, message: %v", r.Method, r.URL.Path, err.Error())
+	e.json.WriteJSONError(w, http.StatusUnauthorized, err.Error())
+}

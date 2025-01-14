@@ -6,13 +6,15 @@ import (
 	"time"
 
 	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/handlers"
+	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/middlewares"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type application struct {
-	config  Config
-	handler handlers.Handler
+	config     Config
+	handler    handlers.Handler
+	middleware middlewares.Middleware
 }
 
 type Config struct {
@@ -48,8 +50,14 @@ func (app *application) mount() http.Handler {
 
 		// auth handler
 		r.Route("/authentication", func(r chi.Router) {
-			r.Post("/user", app.handler.Users.RegisterUser)
-			r.Post("/login", app.handler.Users.LoginUser)
+			r.Post("/register", app.handler.Auth.RegisterUser)
+			r.Post("/login", app.handler.Auth.LoginUser)
+		})
+
+		// user handler
+		r.Route("/users", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Get("/", app.handler.Users.GetProfile)
 		})
 	})
 
