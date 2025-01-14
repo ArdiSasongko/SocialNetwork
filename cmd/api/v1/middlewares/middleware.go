@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,31 +11,34 @@ import (
 	"strings"
 
 	"github.com/ArdiSasongko/SocialNetwork/internal/auth"
-	"github.com/ArdiSasongko/SocialNetwork/internal/service"
+	"github.com/ArdiSasongko/SocialNetwork/internal/storage/postgresql"
 	"github.com/ArdiSasongko/SocialNetwork/utils"
+	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 type userkey string
+type postKey string
 
 const UserCtx userkey = "user"
+const PostCtx postKey = "post"
 
 type Middleware struct {
 	json    utils.JsonUtils
 	errror  utils.ErrorUtils
 	auth    auth.Authenticator
-	service service.Service
+	storage postgresql.Storage
 }
 
 func NewMiddleware(db *sql.DB, auth auth.Authenticator) Middleware {
 	json := utils.NewJsonUtils()
 	error := utils.NewErrorUtils()
-	service := service.NewService(db, auth)
+	storage := postgresql.NewStorage(db)
 	return Middleware{
 		json:    json,
 		errror:  error,
 		auth:    auth,
-		service: service,
+		storage: storage,
 	}
 }
 
@@ -70,14 +74,40 @@ func (m *Middleware) AuthMiddleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 		// get user from database
-		user, err := m.service.Users.GetProfileByID(ctx, userID)
+		user, err := m.storage.Users.GetByID(ctx, userID)
 		if err != nil {
 			m.errror.UnauthorizedError(w, r, err)
 			return
 		}
 
-		log.Println(user.Fullname)
 		ctx = context.WithValue(ctx, UserCtx, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Middleware) PostCTXMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idParam := chi.URLParam(r, "postID")
+		postID, err := strconv.ParseInt(idParam, 10, 64)
+		if err != nil {
+			m.errror.InternalServerError(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+		post, err := m.storage.Posts.GetPostByID(ctx, postID)
+		if err != nil {
+			switch {
+			case errors.Is(err, postgresql.ErrNotFound):
+				m.errror.NotFoundError(w, r, err)
+			default:
+				m.errror.InternalServerError(w, r, err)
+			}
+			return
+		}
+
+		log.Println(post.Title)
+		ctx = context.WithValue(ctx, PostCtx, post)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

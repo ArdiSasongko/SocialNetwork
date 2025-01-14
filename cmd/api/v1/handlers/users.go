@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/middlewares"
-	"github.com/ArdiSasongko/SocialNetwork/internal/models"
 	"github.com/ArdiSasongko/SocialNetwork/internal/service"
+	"github.com/ArdiSasongko/SocialNetwork/internal/storage/postgresql"
 	"github.com/ArdiSasongko/SocialNetwork/utils"
 )
 
@@ -24,7 +24,7 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getUserfromCtx(r *http.Request) *models.UserResponse {
-	user, _ := r.Context().Value(middlewares.UserCtx).(*models.UserResponse)
+func getUserfromCtx(r *http.Request) *postgresql.User {
+	user, _ := r.Context().Value(middlewares.UserCtx).(*postgresql.User)
 	return user
 }

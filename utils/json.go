@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -15,6 +16,31 @@ func (j *JsonUtils) writeJSON(w http.ResponseWriter, status int, data any) error
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(data)
+}
+
+func (j *JsonUtils) ReadFormData(w http.ResponseWriter, r *http.Request, data any) error {
+	// Tentukan batas ukuran form
+	err := r.ParseMultipartForm(10 << 20) // 10 MB
+	if err != nil {
+		log.Println(err.Error())
+		return j.WriteJSONError(w, http.StatusBadRequest, "Unable to parse form data")
+	}
+
+	// Ambil data dari r.Form dan decode ke dalam struct
+	formData := r.Form
+	formDataJSON, err := json.Marshal(formData)
+	if err != nil {
+		log.Println(err.Error())
+		return j.WriteJSONError(w, http.StatusInternalServerError, "Error processing form data")
+	}
+
+	err = json.Unmarshal(formDataJSON, data)
+	if err != nil {
+		log.Println(err.Error())
+		return j.WriteJSONError(w, http.StatusInternalServerError, "Error decoding form data")
+	}
+
+	return nil
 }
 
 func (j *JsonUtils) ReadJSON(w http.ResponseWriter, r *http.Request, data any) error {

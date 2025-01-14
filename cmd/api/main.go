@@ -9,6 +9,7 @@ import (
 	"github.com/ArdiSasongko/SocialNetwork/internal/auth"
 	"github.com/ArdiSasongko/SocialNetwork/internal/db"
 	"github.com/ArdiSasongko/SocialNetwork/internal/env"
+	"github.com/ArdiSasongko/SocialNetwork/internal/storage/cldnary"
 	"github.com/joho/godotenv"
 )
 
@@ -31,6 +32,10 @@ func main() {
 			iss:    env.GetString("JWT_ISS", "SocialNetwork"),
 			exp:    time.Hour * 24 * 3,
 		},
+		cloudinary: cldConfig{
+			url:    env.GetString("CLOUDINARY_URL", ""),
+			folder: env.GetString("CLOUDINARY_FOLDER", ""),
+		},
 	}
 
 	// connection to database
@@ -51,7 +56,15 @@ func main() {
 		cfg.auth.iss,
 	)
 
-	handler := handlers.NewHandler(conn, auth)
+	cld, err := cldnary.NewCloudinary(
+		cfg.cloudinary.url,
+		cfg.cloudinary.folder,
+	)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	handler := handlers.NewHandler(conn, auth, *cld)
 	middleware := middlewares.NewMiddleware(conn, auth)
 
 	app := application{

@@ -18,9 +18,10 @@ type application struct {
 }
 
 type Config struct {
-	addr string
-	db   dbConfig
-	auth authConfig
+	addr       string
+	db         dbConfig
+	auth       authConfig
+	cloudinary cldConfig
 }
 
 type dbConfig struct {
@@ -34,6 +35,11 @@ type authConfig struct {
 	secret string
 	exp    time.Duration
 	iss    string
+}
+
+type cldConfig struct {
+	url    string
+	folder string
 }
 
 func (app *application) mount() http.Handler {
@@ -54,10 +60,21 @@ func (app *application) mount() http.Handler {
 			r.Post("/login", app.handler.Auth.LoginUser)
 		})
 
-		// user handler
-		r.Route("/users", func(r chi.Router) {
+		// profile handler
+		r.Route("/profile", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Get("/", app.handler.Users.GetProfile)
+		})
+
+		// post handler
+		r.Route("/posts", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Post("/", app.handler.Post.CreatePost)
+
+			r.Route("/{postID}", func(r chi.Router) {
+				r.Use(app.middleware.PostCTXMiddleware)
+				r.Get("/", app.handler.Post.GetPostByID)
+			})
 		})
 	})
 

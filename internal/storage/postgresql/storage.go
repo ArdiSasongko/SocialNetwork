@@ -21,11 +21,20 @@ type Storage struct {
 		GetByEmail(context.Context, string) (*User, error)
 		CreateUser(context.Context, *User, *ImgURL) error
 	}
+	Posts interface {
+		CreatePost(context.Context, *Post, []ImagePost) error
+		UpdatePost(context.Context, *Post) error
+		GetPostByID(context.Context, int64) (*Post, error)
+		GetByID(context.Context, *sql.Tx, int64) (*Post, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
 		Users: &UserStorage{
+			db: db,
+		},
+		Posts: &PostStore{
 			db: db,
 		},
 	}

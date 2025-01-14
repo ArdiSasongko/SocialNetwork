@@ -54,7 +54,7 @@ type UserStorage struct {
 
 func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.image_url
+		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.*
 		FROM users
 		LEFT JOIN image_profile img ON (users.id = img.user_id)
 		WHERE id = $1 AND is_active = true
@@ -77,7 +77,10 @@ func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) 
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.ImgURL.UserID,
 		&user.ImgURL.ImageURL,
+		&user.ImgURL.CreatedAt,
+		&user.ImgURL.UpdatedAt,
 	)
 	if err != nil {
 		switch {
@@ -169,7 +172,7 @@ func (s *UserStorage) CreateUser(ctx context.Context, u *User, img *ImgURL) erro
 
 func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.image_url
+		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.*
 		FROM users
 		LEFT JOIN image_profile img ON (users.id = img.user_id)
 		WHERE email = $1 AND is_active = true
@@ -192,7 +195,10 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.ImgURL.UserID,
 		&user.ImgURL.ImageURL,
+		&user.ImgURL.CreatedAt,
+		&user.ImgURL.UpdatedAt,
 	)
 	if err != nil {
 		switch {
