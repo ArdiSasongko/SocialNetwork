@@ -16,6 +16,8 @@ type Handler struct {
 	}
 	Users interface {
 		GetProfile(w http.ResponseWriter, r *http.Request)
+		UpdateImages(w http.ResponseWriter, r *http.Request)
+		UpdateUser(w http.ResponseWriter, r *http.Request)
 	}
 	Auth interface {
 		RegisterUser(w http.ResponseWriter, r *http.Request)
