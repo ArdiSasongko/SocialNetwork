@@ -11,9 +11,7 @@ import (
 	"github.com/ArdiSasongko/SocialNetwork/internal/storage/postgresql"
 )
 
-const (
-	folder = "Posts"
-)
+const folderPost = "Posts"
 
 type PostService struct {
 	storage    *postgresql.Storage
@@ -33,7 +31,7 @@ func (s *PostService) CreatePost(ctx context.Context, payload *models.PostPayloa
 
 	// mapping to imageurl post
 	for i, image := range payload.Images {
-		imgUrl, publicID, err := s.cloudinary.UploadImage(ctx, image, folder)
+		imgUrl, publicID, err := s.cloudinary.UploadImage(ctx, image, folderPost)
 		if err != nil {
 			return err
 		}
@@ -59,6 +57,34 @@ func (s *PostService) CreatePost(ctx context.Context, payload *models.PostPayloa
 		if errRollback != nil {
 			return fmt.Errorf("rollback failed: %w", errRollback)
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (s *PostService) UpdatePost(ctx context.Context, post *postgresql.Post, payload *models.PostUpdatePayload) error {
+	if payload.Title != nil {
+		post.Title = *payload.Title
+	}
+
+	if payload.Content != nil {
+		post.Content = *payload.Content
+	}
+
+	if payload.Tags != nil {
+		post.Tags = *payload.Tags
+	}
+
+	if err := s.storage.Posts.UpdatePost(ctx, post); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *PostService) DeletePost(ctx context.Context, postID int64) error {
+	if err := s.storage.Posts.DeletePost(ctx, postID); err != nil {
 		return err
 	}
 

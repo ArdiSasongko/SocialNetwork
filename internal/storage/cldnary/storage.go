@@ -22,6 +22,7 @@ func NewCloudinary(apiUrl string, folder string) (*ClientCloudinary, error) {
 	}
 	return &ClientCloudinary{
 		Client: client,
+		Folder: folder,
 	}, nil
 }
 

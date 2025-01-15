@@ -74,6 +74,10 @@ func (app *application) mount() http.Handler {
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Use(app.middleware.PostCTXMiddleware)
 				r.Get("/", app.handler.Post.GetPostByID)
+
+				// middleware authorization
+				r.Patch("/", app.handler.Post.CheckOwnerPost("moderator", app.handler.Post.UpdatePost))
+				r.Delete("/", app.handler.Post.CheckOwnerPost("admin", app.handler.Post.DeletePost))
 			})
 		})
 	})

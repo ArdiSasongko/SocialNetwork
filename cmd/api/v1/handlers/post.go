@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -78,7 +79,80 @@ func extractFiles(r *http.Request, fieldName string) ([]*multipart.FileHeader, e
 	return files, nil
 }
 
+func (h *PostHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	payload := new(models.PostUpdatePayload)
+	post := getPostfromCtx(r)
+
+	if err := h.json.ReadJSON(w, r, payload); err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+
+	if err := payload.Validate(); err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+
+	if err := h.service.Post.UpdatePost(r.Context(), post, payload); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+
+	if err := h.json.JsonResponse(w, http.StatusOK, nil); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
+func (h *PostHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	post := getPostfromCtx(r)
+
+	if err := h.service.Post.DeletePost(r.Context(), post.ID); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+
+	if err := h.json.JsonResponse(w, http.StatusNoContent, nil); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
 func getPostfromCtx(r *http.Request) *postgresql.Post {
 	user, _ := r.Context().Value(middlewares.PostCtx).(*postgresql.Post)
 	return user
+}
+
+func (h *PostHandler) CheckOwnerPost(allowRole string, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		post := getPostfromCtx(r)
+		user := getUserfromCtx(r)
+
+		if user.ID == post.UserID {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// check roles allowed
+		allow, err := h.checkRoleAllowed(r.Context(), user, allowRole)
+		if err != nil {
+			h.error.InternalServerError(w, r, err)
+			return
+		}
+
+		if !allow {
+			h.error.ForbiddenError(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (h *PostHandler) checkRoleAllowed(ctx context.Context, user *postgresql.User, roleRequired string) (bool, error) {
+	role, err := h.service.Role.GetRole(ctx, roleRequired)
+	if err != nil {
+		return false, err
+	}
+
+	return user.Role.Level >= role.Level, nil
 }

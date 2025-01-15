@@ -192,14 +192,14 @@ func (s *PostStore) GetPostByID(ctx context.Context, postID int64) (*Post, error
 func (s *PostStore) UpdatePost(ctx context.Context, p *Post) error {
 	query := `
 		UPDATE posts
-		SET title = $1, content = $2, tags = $3, is_edited = true, updated_at = $4
-		WHERE id = $5
+		SET title = $1, content = $2, tags = $3, is_edited = true, updated_at = NOW()
+		WHERE id = $4
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
 	defer cancel()
 
-	res, err := s.db.ExecContext(ctx, query, p.Title, p.Content, p.Tags, p.UpdatedAt, p.ID)
+	res, err := s.db.ExecContext(ctx, query, p.Title, p.Content, pq.Array(p.Tags), p.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -207,6 +207,32 @@ func (s *PostStore) UpdatePost(ctx context.Context, p *Post) error {
 		default:
 			return err
 		}
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *PostStore) DeletePost(ctx context.Context, postID int64) error {
+	query := `
+		DELETE FROM posts
+		WHERE id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, postID)
+	if err != nil {
+		return err
 	}
 
 	rows, err := res.RowsAffected()
