@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"log"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/ArdiSasongko/SocialNetwork/cmd/api/v1/middlewares"
@@ -64,19 +63,6 @@ func (h *PostHandler) GetPostByID(w http.ResponseWriter, r *http.Request) {
 		h.error.InternalServerError(w, r, err)
 		return
 	}
-}
-
-func extractFiles(r *http.Request, fieldName string) ([]*multipart.FileHeader, error) {
-	if r.MultipartForm == nil || r.MultipartForm.File == nil {
-		return nil, nil
-	}
-
-	files, ok := r.MultipartForm.File[fieldName]
-	if !ok || len(files) == 0 {
-		return nil, nil
-	}
-
-	return files, nil
 }
 
 func (h *PostHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {

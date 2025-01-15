@@ -13,6 +13,8 @@ import (
 type Service struct {
 	Users interface {
 		GetProfileByID(context.Context, int64) (*models.UserResponse, error)
+		UpdateProfile(context.Context, *models.UpdateImagePayload) error
+		UpdateUser(context.Context, *postgresql.User, *models.UserUpdatePayload) error
 	}
 	Auth interface {
 		RegisterUser(context.Context, *models.UserPayload) error
@@ -32,8 +34,9 @@ func NewService(db *sql.DB, auth auth.Authenticator, cloudinary cldnary.ClientCl
 	storage := postgresql.NewStorage(db)
 	return Service{
 		Users: &UserService{
-			storage: &storage,
-			auth:    auth,
+			storage:    &storage,
+			auth:       auth,
+			cloudinary: cloudinary,
 		},
 		Auth: &AuthService{
 			storage:    &storage,

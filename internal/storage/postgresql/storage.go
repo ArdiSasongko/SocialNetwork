@@ -20,6 +20,8 @@ type Storage struct {
 		GetByID(context.Context, int64) (*User, error)
 		GetByEmail(context.Context, string) (*User, error)
 		CreateUser(context.Context, *User, *ImgURL) error
+		UpdateProfile(context.Context, *ImgURL) error
+		UpdateUser(context.Context, *User) error
 	}
 	Posts interface {
 		CreatePost(context.Context, *Post, []ImagePost) error
