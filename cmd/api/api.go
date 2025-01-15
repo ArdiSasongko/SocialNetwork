@@ -64,6 +64,9 @@ func (app *application) mount() http.Handler {
 		r.Route("/profile", func(r chi.Router) {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Get("/", app.handler.Users.GetProfile)
+
+			r.Patch("/", app.handler.Users.UpdateUser)
+			r.Put("/image", app.handler.Users.UpdateImages)
 		})
 
 		// post handler
@@ -80,6 +83,10 @@ func (app *application) mount() http.Handler {
 				r.Delete("/", app.handler.Post.CheckOwnerPost("admin", app.handler.Post.DeletePost))
 			})
 		})
+
+		// feed handler
+
+		// user handler
 	})
 
 	return r

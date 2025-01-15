@@ -232,3 +232,69 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 
 	return user, nil
 }
+
+func (s *UserStorage) UpdateProfile(ctx context.Context, image *ImgURL) error {
+	query := `
+		UPDATE image_profile
+		SET image_url = $1, updated_at = NOW()
+		WHERE user_id = $2
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, image.ImageURL, image.UserID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		default:
+			return err
+		}
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}
+
+func (s *UserStorage) UpdateUser(ctx context.Context, u *User) error {
+	query := `
+		UPDATE users
+		SET username = $1, fullname = $2, updated_at = NOW()
+		WHERE id = $3
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
+	defer cancel()
+
+	res, err := s.db.ExecContext(ctx, query, u.Username, u.Fullname, u.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrNotFound
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsername
+		default:
+			return err
+		}
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return ErrNotFound
+	}
+
+	return nil
+}

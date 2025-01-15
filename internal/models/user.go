@@ -46,3 +46,21 @@ type UserResponse struct {
 type ImageUserResponse struct {
 	ImageURL string `json:"image_url"`
 }
+
+type UpdateImagePayload struct {
+	Image  *multipart.FileHeader `json:"image" form:"image" validate:"required"`
+	UserID int64                 `json:"user_id"`
+}
+
+func (u *UpdateImagePayload) Validate() error {
+	return Validate.Struct(u)
+}
+
+type UserUpdatePayload struct {
+	Username *string `json:"username" form:"username" validate:"omitempty,min=3,max=255"`
+	Fullname *string `json:"fullname" form:"fullname" validate:"omitempty,min=3,max=255"`
+}
+
+func (u *UserUpdatePayload) Validate() error {
+	return Validate.Struct(u)
+}
