@@ -60,6 +60,7 @@ func main() {
 		cfg.cloudinary.url,
 		cfg.cloudinary.folder,
 	)
+
 	if err != nil {
 		log.Fatal(err.Error())
 	}

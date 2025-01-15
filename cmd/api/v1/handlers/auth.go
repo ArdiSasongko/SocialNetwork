@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/ArdiSasongko/SocialNetwork/internal/models"
 	"github.com/ArdiSasongko/SocialNetwork/internal/service"
@@ -75,4 +79,43 @@ func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		h.error.InternalServerError(w, r, err)
 		return
 	}
+}
+
+func extractFile(r *http.Request, fieldName string) (*multipart.FileHeader, error) {
+	file, fileheader, err := r.FormFile(fieldName)
+	if err != nil && err != http.ErrMissingFile {
+		return nil, err
+	}
+
+	if file == nil {
+		return nil, nil
+	}
+
+	defer file.Close()
+
+	if fileheader.Size > 2*1024*1024 {
+		return nil, fmt.Errorf("file to large (max 2mb)")
+	}
+
+	contentType := fileheader.Header.Get("Content-Type")
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+	}
+	if !allowedTypes[contentType] {
+		return nil, fmt.Errorf("invalid file type")
+	}
+
+	ext := strings.ToLower(filepath.Ext(fileheader.Filename))
+	allowedExt := map[string]bool{
+		".jpg":  true,
+		".png":  true,
+		".jpeg": true,
+	}
+
+	if !allowedExt[ext] {
+		return nil, fmt.Errorf("invalid file type only (jpg,png,jpeg)")
+	}
+
+	return fileheader, nil
 }

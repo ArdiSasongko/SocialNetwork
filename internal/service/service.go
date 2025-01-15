@@ -20,6 +20,11 @@ type Service struct {
 	}
 	Post interface {
 		CreatePost(context.Context, *models.PostPayload) error
+		UpdatePost(context.Context, *postgresql.Post, *models.PostUpdatePayload) error
+		DeletePost(ctx context.Context, postID int64) error
+	}
+	Role interface {
+		GetRole(context.Context, string) (*postgresql.Role, error)
 	}
 }
 
@@ -31,12 +36,16 @@ func NewService(db *sql.DB, auth auth.Authenticator, cloudinary cldnary.ClientCl
 			auth:    auth,
 		},
 		Auth: &AuthService{
-			storage: &storage,
-			auth:    auth,
+			storage:    &storage,
+			auth:       auth,
+			cloudinary: cloudinary,
 		},
 		Post: &PostService{
 			storage:    &storage,
 			cloudinary: cloudinary,
+		},
+		Role: &RoleService{
+			storage: &storage,
 		},
 	}
 }

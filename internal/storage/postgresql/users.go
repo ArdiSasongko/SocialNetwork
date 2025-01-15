@@ -17,6 +17,7 @@ type User struct {
 	IsActive  bool     `json:"is_active"`
 	CreatedAt string   `json:"created_at"`
 	UpdatedAt string   `json:"updated_at"`
+	Role      Role     `json:"role"`
 	ImgURL    ImgURL   `json:"image_url"`
 }
 
@@ -54,10 +55,16 @@ type UserStorage struct {
 
 func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) {
 	query := `
-		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.*
+		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, role, 
+		COALESCE(img.user_id,0) AS user_id,
+		COALESCE(img.image_url,'') AS image_url,
+		COALESCE(img.created_at,NOW()) AS created_at,
+		COALESCE(img.updated_at,NOW()) AS updated_at,
+		r.level
 		FROM users
 		LEFT JOIN image_profile img ON (users.id = img.user_id)
-		WHERE id = $1 AND is_active = true
+		LEFT JOIN roles r ON (users.role = r.name)
+		WHERE users.id = $1 AND is_active = true
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
@@ -77,10 +84,12 @@ func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) 
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.Role.Name,
 		&user.ImgURL.UserID,
 		&user.ImgURL.ImageURL,
 		&user.ImgURL.CreatedAt,
 		&user.ImgURL.UpdatedAt,
+		&user.Role.Level,
 	)
 	if err != nil {
 		switch {
@@ -96,13 +105,16 @@ func (s *UserStorage) GetByID(ctx context.Context, userID int64) (*User, error) 
 
 func (s *UserStorage) insertUser(ctx context.Context, tx *sql.Tx, user *User) (*User, error) {
 	query := `
-		INSERT INTO users (username, fullname, email, password)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO users (username, fullname, email, password, role)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at
 	`
 	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
 	defer cancel()
 
+	if user.Role.Name == "" {
+		user.Role.Name = "user"
+	}
 	err := tx.QueryRowContext(
 		ctx,
 		query,
@@ -110,6 +122,7 @@ func (s *UserStorage) insertUser(ctx context.Context, tx *sql.Tx, user *User) (*
 		user.Fullname,
 		user.Email,
 		user.Password.Hash,
+		user.Role.Name,
 	).Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -172,9 +185,15 @@ func (s *UserStorage) CreateUser(ctx context.Context, u *User, img *ImgURL) erro
 
 func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, img.*
+		SELECT users.id, username, fullname, email, password, is_active, users.created_at, users.updated_at, role, 
+		COALESCE(img.user_id,0) AS user_id,
+		COALESCE(img.image_url,'') AS image_url,
+		COALESCE(img.created_at,NOW()) AS created_at,
+		COALESCE(img.updated_at,NOW()) AS updated_at,
+		r.level
 		FROM users
 		LEFT JOIN image_profile img ON (users.id = img.user_id)
+		LEFT JOIN roles r ON (users.role = r.name)
 		WHERE email = $1 AND is_active = true
 	`
 
@@ -195,10 +214,12 @@ func (s *UserStorage) GetByEmail(ctx context.Context, email string) (*User, erro
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.Role.Name,
 		&user.ImgURL.UserID,
 		&user.ImgURL.ImageURL,
 		&user.ImgURL.CreatedAt,
 		&user.ImgURL.UpdatedAt,
+		&user.Role.Level,
 	)
 	if err != nil {
 		switch {

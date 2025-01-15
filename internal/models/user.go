@@ -1,6 +1,10 @@
 package models
 
-import "github.com/go-playground/validator/v10"
+import (
+	"mime/multipart"
+
+	"github.com/go-playground/validator/v10"
+)
 
 var Validate *validator.Validate
 
@@ -9,10 +13,11 @@ func init() {
 }
 
 type UserPayload struct {
-	Username string `json:"username" validate:"required,min=3,max=255"`
-	Fullname string `json:"fullname" validate:"required,min=3,max=255"`
-	Email    string `json:"email" validate:"required,email,max=72"`
-	Password string `json:"password" validate:"required,min=5,max=72"`
+	Username     string                `json:"username" form:"username" validate:"required,min=3,max=255"`
+	Fullname     string                `json:"fullname" form:"fullname" validate:"required,min=3,max=255"`
+	Email        string                `json:"email" form:"email" validate:"required,email,max=72"`
+	Password     string                `json:"password" form:"password" validate:"required,min=5,max=72"`
+	ImageProfile *multipart.FileHeader `json:"images" form:"images" validate:"omitempty"`
 }
 
 func (u *UserPayload) Validate() error {

@@ -2,18 +2,29 @@ package service
 
 import (
 	"context"
+	"math/rand/v2"
 	"time"
 
 	"github.com/ArdiSasongko/SocialNetwork/internal/auth"
 	"github.com/ArdiSasongko/SocialNetwork/internal/env"
 	"github.com/ArdiSasongko/SocialNetwork/internal/models"
+	"github.com/ArdiSasongko/SocialNetwork/internal/storage/cldnary"
 	"github.com/ArdiSasongko/SocialNetwork/internal/storage/postgresql"
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const folderProfile = "Profiles"
+
+var defaultImage = []string{
+	"https://res.cloudinary.com/drbxy46kq/image/upload/v1736916378/Minimalist_Avatar_1_ayc9ei.jpg",
+	"https://res.cloudinary.com/drbxy46kq/image/upload/v1736916378/Minimalist_Avatar_3_lui2ue.jpg",
+	"https://res.cloudinary.com/drbxy46kq/image/upload/v1736916378/Minimalist_Avatar_2_lbqoac.jpg",
+}
+
 type AuthService struct {
-	storage *postgresql.Storage
-	auth    auth.Authenticator
+	storage    *postgresql.Storage
+	auth       auth.Authenticator
+	cloudinary cldnary.ClientCloudinary
 }
 
 func (s *AuthService) RegisterUser(ctx context.Context, payload *models.UserPayload) error {
@@ -28,9 +39,10 @@ func (s *AuthService) RegisterUser(ctx context.Context, payload *models.UserPayl
 	}
 
 	// todo update image upload handler
-	randomImg := "https://www.freepik.com/icon/man_11043660#fromView=search&page=1&position=25&uuid=ce1b8a3b-1eef-400a-9380-e32a9971f96c"
+	imgUrl := defaultImage[rand.IntN(len(defaultImage))]
+
 	img := postgresql.ImgURL{
-		ImageURL: randomImg,
+		ImageURL: imgUrl,
 	}
 
 	if err := s.storage.Users.CreateUser(ctx, &user, &img); err != nil {

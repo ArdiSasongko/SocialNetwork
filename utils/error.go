@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -34,4 +35,10 @@ func (e *ErrorUtils) NotFoundError(w http.ResponseWriter, r *http.Request, err e
 func (e *ErrorUtils) UnauthorizedError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("unauthorized error, method: %v, path :%v, message: %v", r.Method, r.URL.Path, err.Error())
 	e.json.WriteJSONError(w, http.StatusUnauthorized, err.Error())
+}
+
+func (e *ErrorUtils) ForbiddenError(w http.ResponseWriter, r *http.Request) {
+	err := fmt.Sprint("user forbidden")
+	log.Printf("forbidden error, method: %v, path :%v, message: %v", r.Method, r.URL.Path, err)
+	e.json.WriteJSONError(w, http.StatusForbidden, err)
 }

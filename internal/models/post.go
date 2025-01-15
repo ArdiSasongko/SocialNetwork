@@ -18,3 +18,13 @@ type ImagePayload struct {
 	ImageUrl  string `json:"image_url"`
 	ImageName string `json:"image_name"`
 }
+
+type PostUpdatePayload struct {
+	Title   *string   `json:"title" form:"title" validate:"omitempty,min=5,max=255"`
+	Content *string   `json:"content" form:"content" validate:"omitempty,min=10"`
+	Tags    *[]string `json:"tags" form:"tags"`
+}
+
+func (u *PostUpdatePayload) Validate() error {
+	return Validate.Struct(u)
+}

@@ -24,6 +24,9 @@ type Handler struct {
 	Post interface {
 		CreatePost(w http.ResponseWriter, r *http.Request)
 		GetPostByID(w http.ResponseWriter, r *http.Request)
+		UpdatePost(w http.ResponseWriter, r *http.Request)
+		DeletePost(w http.ResponseWriter, r *http.Request)
+		CheckOwnerPost(allowRole string, next http.HandlerFunc) http.HandlerFunc
 	}
 }
 
