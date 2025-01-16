@@ -34,6 +34,9 @@ type Handler struct {
 		CheckOwnerPost(allowRole string, next http.HandlerFunc) http.HandlerFunc
 		GetPostByUser(w http.ResponseWriter, r *http.Request)
 	}
+	Feed interface {
+		GetFeeds(w http.ResponseWriter, r *http.Request)
+	}
 }
 
 func NewHandler(db *sql.DB, auth auth.Authenticator, cld cldnary.ClientCloudinary) Handler {
@@ -56,6 +59,11 @@ func NewHandler(db *sql.DB, auth auth.Authenticator, cld cldnary.ClientCloudinar
 			error:   error,
 		},
 		Post: &PostHandler{
+			service: service,
+			json:    json,
+			error:   error,
+		},
+		Feed: &FeedHandler{
 			service: service,
 			json:    json,
 			error:   error,

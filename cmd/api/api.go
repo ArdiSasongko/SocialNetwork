@@ -102,8 +102,13 @@ func (app *application) mount() http.Handler {
 				r.Delete("/unfollow", app.handler.Users.UnfollowUser)
 			})
 		})
-		// feed handler
 
+		// feed handler
+		r.Route("/feeds", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Get("/", app.handler.Feed.GetFeeds)
+
+		})
 	})
 
 	return r

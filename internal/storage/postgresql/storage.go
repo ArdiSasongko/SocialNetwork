@@ -30,6 +30,7 @@ type Storage struct {
 		GetByID(context.Context, *sql.Tx, int64) (*Post, error)
 		DeletePost(context.Context, int64) error
 		GetByUser(context.Context, int64) (*[]Post, error)
+		GetFeeds(context.Context, int64, Pagination) ([]PostWithMetaData, error)
 	}
 	Roles interface {
 		GetByName(context.Context, string) (*Role, error)
