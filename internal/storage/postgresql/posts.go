@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -19,6 +20,7 @@ type Post struct {
 	UpdatedAt string      `json:"updated_at"`
 	IsEdited  bool        `json:"is_edited"`
 	Images    []ImagePost `json:"images"`
+	User      User        `json:"user"`
 }
 
 type ImagePost struct {
@@ -29,6 +31,9 @@ type ImagePost struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
+type PostWithMetaData struct {
+	Post
+}
 type PostStore struct {
 	db *sql.DB
 }
@@ -286,4 +291,83 @@ func (s *PostStore) GetByUser(ctx context.Context, userID int64) (*[]Post, error
 
 	return &posts, nil
 
+}
+
+func (s *PostStore) GetFeeds(ctx context.Context, userID int64, pf Pagination) ([]PostWithMetaData, error) {
+	queryBuilder := strings.Builder{}
+	params := make([]interface{}, 0)
+	paramsCount := 1
+
+	// base query
+	queryBuilder.WriteString(`
+		SELECT 
+			p.id, 
+			p.user_id, 
+			u.username, 
+			p.title, 
+			p.content, 
+			p.tags, 
+			p.is_edited, 
+			p.created_at, 
+			p.updated_at
+		FROM posts p
+		LEFT JOIN users u ON u.id = p.user_id
+		LEFT JOIN follows f ON f.user_id = p.user_id AND f.follower_id = $1
+			WHERE p.user_id = $1  -- Own posts
+   		OR f.user_id IS NOT NULL
+	`)
+
+	params = append(params, userID)
+
+	// condition query
+	queryBuilder.WriteString(` GROUP BY p.id, u.username ORDER BY p.created_at ` + pf.Sort)
+	queryBuilder.WriteString(fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramsCount+1, paramsCount+2))
+	params = append(params, pf.Limit, pf.Offset)
+
+	ctx, cancel := context.WithTimeout(ctx, TimeoutCtx)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, queryBuilder.String(), params...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query :%w", err)
+	}
+	defer rows.Close()
+
+	var feeds []PostWithMetaData
+
+	for rows.Next() {
+		var feed PostWithMetaData
+		if err := rows.Scan(
+			&feed.Post.ID,
+			&feed.Post.UserID,
+			&feed.Post.User.Username,
+			&feed.Post.Title,
+			&feed.Post.Content,
+			pq.Array(&feed.Post.Tags),
+			&feed.Post.IsEdited,
+			&feed.Post.CreatedAt,
+			&feed.Post.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		tx, err := s.db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to begin transaction: %w", err)
+		}
+		images, err := s.getImageByID(ctx, tx, feed.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		feed.Images = images
+
+		feeds = append(feeds, feed)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error for iterating rows :%w", err)
+	}
+
+	return feeds, nil
 }

@@ -30,6 +30,9 @@ type Service struct {
 	Role interface {
 		GetRole(context.Context, string) (*postgresql.Role, error)
 	}
+	Feeds interface {
+		GetFeeds(context.Context, int64, postgresql.Pagination) (models.FeedsResponse, error)
+	}
 }
 
 func NewService(db *sql.DB, auth auth.Authenticator, cloudinary cldnary.ClientCloudinary) Service {
@@ -50,6 +53,9 @@ func NewService(db *sql.DB, auth auth.Authenticator, cloudinary cldnary.ClientCl
 			cloudinary: cloudinary,
 		},
 		Role: &RoleService{
+			storage: &storage,
+		},
+		Feeds: &FeedService{
 			storage: &storage,
 		},
 	}
