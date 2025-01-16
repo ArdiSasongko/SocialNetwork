@@ -32,6 +32,10 @@ type Service struct {
 	}
 	Feeds interface {
 		GetFeeds(context.Context, int64, postgresql.Pagination) (models.FeedsResponse, error)
+		GetFeed(context.Context, int64) (models.PostResponse, error)
+		LikePost(context.Context, *models.UserActivitiesPayload) error
+		DislikePost(context.Context, *models.UserActivitiesPayload) error
+		CreateCommentPost(context.Context, *models.CommentPayload) error
 	}
 }
 

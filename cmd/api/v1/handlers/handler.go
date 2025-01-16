@@ -36,6 +36,10 @@ type Handler struct {
 	}
 	Feed interface {
 		GetFeeds(w http.ResponseWriter, r *http.Request)
+		GetFeed(w http.ResponseWriter, r *http.Request)
+		LikedFeed(w http.ResponseWriter, r *http.Request)
+		DisikedFeed(w http.ResponseWriter, r *http.Request)
+		CreateComment(w http.ResponseWriter, r *http.Request)
 	}
 }
 

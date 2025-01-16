@@ -39,6 +39,17 @@ type Storage struct {
 		FollowUser(context.Context, int64, int64) error
 		UnfollowUser(context.Context, int64, int64) error
 	}
+	Activities interface {
+		ToggleLikePost(context.Context, *Activities) error
+		ToggleDislikePost(context.Context, *Activities) error
+		GetLikesByPost(context.Context, int64) (int64, error)
+		GetDislikesByPost(context.Context, int64) (int64, error)
+	}
+	Comments interface {
+		CreateComments(context.Context, *Comment) error
+		GetCommentsByPost(context.Context, int64) ([]Comment, error)
+		GetCommentCountByPost(context.Context, int64) (int64, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -53,6 +64,12 @@ func NewStorage(db *sql.DB) Storage {
 			db: db,
 		},
 		Follows: &FollowStore{
+			db: db,
+		},
+		Comments: &CommentStore{
+			db: db,
+		},
+		Activities: &UserActivities{
 			db: db,
 		},
 	}
