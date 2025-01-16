@@ -34,13 +34,14 @@ func (u *LoginPayload) Validate() error {
 }
 
 type UserResponse struct {
-	ID           int64             `json:"id"`
-	Username     string            `json:"username"`
-	Fullname     string            `json:"fullname"`
-	Email        string            `json:"email"`
-	ImageProfile ImageUserResponse `json:"image_profile"`
-	CreatedAt    string            `json:"created_at"`
-	UpdatedAt    string            `json:"updated_at"`
+	ID           int64                 `json:"id"`
+	Username     string                `json:"username"`
+	Fullname     string                `json:"fullname"`
+	Email        string                `json:"email"`
+	ImageProfile ImageUserResponse     `json:"image_profile"`
+	CreatedAt    string                `json:"created_at"`
+	UpdatedAt    string                `json:"updated_at"`
+	Posts        []PostsByUserResponse `json:"posts"`
 }
 
 type ImageUserResponse struct {

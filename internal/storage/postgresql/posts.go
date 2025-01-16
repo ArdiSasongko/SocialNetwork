@@ -246,3 +246,44 @@ func (s *PostStore) DeletePost(ctx context.Context, postID int64) error {
 
 	return nil
 }
+
+func (s *PostStore) GetByUser(ctx context.Context, userID int64) (*[]Post, error) {
+	query := `
+	SELECT id, title, content, tags, is_edited
+	FROM posts
+	WHERE user_id = $1
+	`
+
+	var (
+		post  Post
+		posts []Post
+	)
+
+	rows, err := s.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			pq.Array(&post.Tags),
+			&post.IsEdited,
+		); err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+
+	return &posts, nil
+
+}

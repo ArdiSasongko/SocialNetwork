@@ -22,6 +22,7 @@ type postKey string
 
 const UserCtx userkey = "user"
 const PostCtx postKey = "post"
+const UserProfileCtx userkey = "userctx"
 
 type Middleware struct {
 	json    utils.JsonUtils
@@ -108,6 +109,33 @@ func (m *Middleware) PostCTXMiddleware(next http.Handler) http.Handler {
 
 		log.Println(post.Title)
 		ctx = context.WithValue(ctx, PostCtx, post)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Middleware) UserProfileCTXMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		idParam := chi.URLParam(r, "userID")
+		userID, err := strconv.ParseInt(idParam, 10, 64)
+		if err != nil {
+			m.errror.InternalServerError(w, r, err)
+			return
+		}
+
+		ctx := r.Context()
+		user, err := m.storage.Users.GetByID(ctx, userID)
+		if err != nil {
+			switch {
+			case errors.Is(err, postgresql.ErrNotFound):
+				m.errror.NotFoundError(w, r, err)
+			default:
+				m.errror.InternalServerError(w, r, err)
+			}
+			return
+		}
+
+		log.Println(user.Fullname)
+		ctx = context.WithValue(ctx, UserProfileCtx, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

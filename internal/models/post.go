@@ -28,3 +28,11 @@ type PostUpdatePayload struct {
 func (u *PostUpdatePayload) Validate() error {
 	return Validate.Struct(u)
 }
+
+type PostsByUserResponse struct {
+	ID       int64    `json:"id"`
+	Title    string   `json:"title"`
+	Content  string   `json:"content"`
+	Tags     []string `json:"tags"`
+	IsEdited bool     `json:"is_edited"`
+}
