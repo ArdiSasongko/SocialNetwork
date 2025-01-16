@@ -108,6 +108,13 @@ func (app *application) mount() http.Handler {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Get("/", app.handler.Feed.GetFeeds)
 
+			r.Route("/{postID}", func(r chi.Router) {
+				r.Use(app.middleware.PostCTXMiddleware)
+				r.Get("/", app.handler.Feed.GetFeed)
+				r.Post("/comment", app.handler.Feed.CreateComment)
+				r.Put("/like", app.handler.Feed.LikedFeed)
+				r.Put("/dislike", app.handler.Feed.DisikedFeed)
+			})
 		})
 	})
 

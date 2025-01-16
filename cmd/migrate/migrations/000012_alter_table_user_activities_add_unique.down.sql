@@ -1,0 +1,2 @@
+alter table user_activities
+drop constraint unique_user_post;
