@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -51,6 +52,21 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.json.JsonResponse(w, http.StatusCreated, nil); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
+func (h *PostHandler) GetPostByUser(w http.ResponseWriter, r *http.Request) {
+	post := getPostfromCtx(r)
+	user := getUserfromCtx(r)
+
+	if post.UserID != user.ID {
+		h.error.BadRequestError(w, r, fmt.Errorf("source not found in this user"))
+		return
+	}
+
+	if err := h.json.JsonResponse(w, http.StatusOK, post); err != nil {
 		h.error.InternalServerError(w, r, err)
 		return
 	}

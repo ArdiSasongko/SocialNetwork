@@ -18,6 +18,9 @@ type Handler struct {
 		GetProfile(w http.ResponseWriter, r *http.Request)
 		UpdateImages(w http.ResponseWriter, r *http.Request)
 		UpdateUser(w http.ResponseWriter, r *http.Request)
+		GetUserProfile(w http.ResponseWriter, r *http.Request)
+		FollowUser(w http.ResponseWriter, r *http.Request)
+		UnfollowUser(w http.ResponseWriter, r *http.Request)
 	}
 	Auth interface {
 		RegisterUser(w http.ResponseWriter, r *http.Request)
@@ -29,6 +32,7 @@ type Handler struct {
 		UpdatePost(w http.ResponseWriter, r *http.Request)
 		DeletePost(w http.ResponseWriter, r *http.Request)
 		CheckOwnerPost(allowRole string, next http.HandlerFunc) http.HandlerFunc
+		GetPostByUser(w http.ResponseWriter, r *http.Request)
 	}
 }
 

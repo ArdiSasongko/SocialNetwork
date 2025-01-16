@@ -65,8 +65,15 @@ func (app *application) mount() http.Handler {
 			r.Use(app.middleware.AuthMiddleware)
 			r.Get("/", app.handler.Users.GetProfile)
 
+			// get post
+			r.Group(func(r chi.Router) {
+				r.Use(app.middleware.PostCTXMiddleware)
+				r.Get("/{postID}", app.handler.Post.GetPostByUser)
+			})
+
 			r.Patch("/", app.handler.Users.UpdateUser)
 			r.Put("/image", app.handler.Users.UpdateImages)
+
 		})
 
 		// post handler
@@ -84,9 +91,19 @@ func (app *application) mount() http.Handler {
 			})
 		})
 
+		// user handler
+		r.Route("/users", func(r chi.Router) {
+			r.Use(app.middleware.AuthMiddleware)
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Use(app.middleware.UserProfileCTXMiddleware)
+				r.Get("/", app.handler.Users.GetUserProfile)
+
+				r.Post("/follow", app.handler.Users.FollowUser)
+				r.Delete("/unfollow", app.handler.Users.UnfollowUser)
+			})
+		})
 		// feed handler
 
-		// user handler
 	})
 
 	return r

@@ -19,7 +19,12 @@ type UserHandler struct {
 func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	user := getUserfromCtx(r)
 
-	if err := h.json.JsonResponse(w, http.StatusOK, user); err != nil {
+	userResp, err := h.service.Users.GetProfileByID(r.Context(), user.ID)
+	if err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+	if err := h.json.JsonResponse(w, http.StatusOK, userResp); err != nil {
 		h.error.InternalServerError(w, r, err)
 		return
 	}
@@ -88,7 +93,56 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *UserHandler) GetUserProfile(w http.ResponseWriter, r *http.Request) {
+	user := getUserProfileCtx(r)
+
+	userResp, err := h.service.Users.GetProfileByID(r.Context(), user.ID)
+	if err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+	if err := h.json.JsonResponse(w, http.StatusOK, userResp); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
+func (h *UserHandler) FollowUser(w http.ResponseWriter, r *http.Request) {
+	user := getUserfromCtx(r)
+	toFollow := getUserProfileCtx(r)
+
+	if err := h.service.Users.FollowUser(r.Context(), toFollow.ID, user.ID); err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+
+	if err := h.json.JsonResponse(w, http.StatusCreated, nil); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
+func (h *UserHandler) UnfollowUser(w http.ResponseWriter, r *http.Request) {
+	user := getUserfromCtx(r)
+	toUnfollow := getUserProfileCtx(r)
+
+	if err := h.service.Users.UnfollowUser(r.Context(), toUnfollow.ID, user.ID); err != nil {
+		h.error.BadRequestError(w, r, err)
+		return
+	}
+
+	if err := h.json.JsonResponse(w, http.StatusCreated, nil); err != nil {
+		h.error.InternalServerError(w, r, err)
+		return
+	}
+}
+
 func getUserfromCtx(r *http.Request) *postgresql.User {
 	user, _ := r.Context().Value(middlewares.UserCtx).(*postgresql.User)
+	return user
+}
+
+func getUserProfileCtx(r *http.Request) *postgresql.User {
+	user, _ := r.Context().Value(middlewares.UserProfileCtx).(*postgresql.User)
 	return user
 }

@@ -15,6 +15,8 @@ type Service struct {
 		GetProfileByID(context.Context, int64) (*models.UserResponse, error)
 		UpdateProfile(context.Context, *models.UpdateImagePayload) error
 		UpdateUser(context.Context, *postgresql.User, *models.UserUpdatePayload) error
+		FollowUser(context.Context, int64, int64) error
+		UnfollowUser(context.Context, int64, int64) error
 	}
 	Auth interface {
 		RegisterUser(context.Context, *models.UserPayload) error
