@@ -12,7 +12,7 @@ RUN go mod tidy
 COPY . ./
 
 # Build the application
-RUN go build -o bin/main cmd/api/main.go
+RUN go build -o bin/main cmd/api/*.go
 
 # Final stage
 FROM alpine:latest
