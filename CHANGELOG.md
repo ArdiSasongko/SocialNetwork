@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/ArdiSasongko/SocialNetwork/compare/v1.1.0...v1.2.0) (2025-01-17)
+
+
+### Features
+
+* fix automation update version api ([be31e67](https://github.com/ArdiSasongko/SocialNetwork/commit/be31e67506412e96951f06d02d16d032d463080c))
+
 ## [1.1.0](https://github.com/ArdiSasongko/SocialNetwork/compare/v1.0.0...v1.1.0) (2025-01-17)
 
 
