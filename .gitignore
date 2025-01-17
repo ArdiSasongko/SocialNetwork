@@ -1,4 +1,2 @@
 .env
 bin/
-bin/main.exe
-bin/*.log
