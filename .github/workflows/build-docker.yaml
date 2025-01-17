@@ -1,0 +1,44 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      
+      - name: Create .env file
+        run: |
+          echo "SERVER_ADDR=:8080" >> .env
+          echo "DB_ADDR=${{ secrets.DB_ADDR }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_ISS=${{ secrets.JWT_ISS }}" >> .env
+          echo "CLOUDINARY_FOLDER=${{ secrets.CLOUDINARY_FOLDER }}" >> .env
+          echo "CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }}" >> .env
+          echo "DB_MAX_OPEN_CONNS=10" >> .env
+          echo "DB_MAX_IDLE_CONNS=10" >> .env
+          echo "DB_MAX_IDLE_TIME=15m" >> .env
+      
+      - name: Validate .env 
+        run: |
+          test -f .env && echo ".env file exists"
+      
+      - name: Login Docker
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+      
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/SocialNetwork:${{ github.sha }} .
+      
+      - name: Push Docker Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/SocialNetwork:${{ github.sha }}
