@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0](https://github.com/ArdiSasongko/SocialNetwork/compare/v1.2.0...v1.3.0) (2025-01-17)
+
+
+### Features
+
+* add build docker image ([2c2587c](https://github.com/ArdiSasongko/SocialNetwork/commit/2c2587c541013511e64043980e33611ddeab548c))
+* fix build docker image ([dfbdb5f](https://github.com/ArdiSasongko/SocialNetwork/commit/dfbdb5fa10e1554971b7c50c08fdedfb914ea726))
+* fix build docker image ([3f511b8](https://github.com/ArdiSasongko/SocialNetwork/commit/3f511b8b6a3b220de41f47015ea7bc8ce050ac14))
+
 ## [1.2.0](https://github.com/ArdiSasongko/SocialNetwork/compare/v1.1.0...v1.2.0) (2025-01-17)
 
 
