@@ -6,7 +6,7 @@ import (
 	"github.com/ArdiSasongko/SocialNetwork/utils"
 )
 
-const version = "1.2.0"
+const version = "1.3.0"
 
 type healthHandler struct {
 	json  utils.JsonUtils
