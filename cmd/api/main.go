@@ -13,8 +13,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const version = "1.1.0"
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
