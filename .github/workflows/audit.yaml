@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
-jons:
+jobs:
   audit:
     runs-on: ubuntu-20.04
     steps:
